@@ -1,19 +1,17 @@
-use wiringpi;
-use wiringpi::WiringPi;
-use wiringpi::pin;
+use wiringpi::{
+    WiringPi,
+    pin,
+};
+use std::collections::HashMap;
 
 mod handlers;
 
 pub use handlers::Handler;
+use handlers::PwmHandler;
 use handlers::SoftPwmHandler;
 use handlers::SwitchHandler;
-use async_trait::async_trait;
-use async_std::prelude::FuturesUnordered;
-use async_std::prelude::Future;
-use async_std::prelude::FutureExt;
-use async_std::task;
 
-const HARDWARE_PWM_PIN: usize = 18;
+const HARDWARE_PWM_PIN: u16 = 18;
 
 pub enum PinType {
     Switch,
@@ -22,66 +20,37 @@ pub enum PinType {
 
 pub struct PinManager {
     pi: WiringPi<pin::WiringPi>,
-    handlers: Vec<Box<dyn Handler>>,
-    runners: FuturesUnordered, // Vec<std::pin::Pin<Box<dyn Future<Output = ()>>>>,
-}
-
-#[derive(Clone)]
-struct UnInitializedHandler {}
-
-#[async_trait]
-impl Handler for UnInitializedHandler {
-    fn set_value(&mut self, value: f32) {
-        println!("Pin not initialized");
-    }
-
-    async fn start(&mut self) {
-        println!("Pin not initialized");
-    }
-
-    fn stop(&mut self)  {
-        println!("Pin not initialized");
-    }
+    handlers: HashMap<u16, Box<dyn Handler>>,
 }
 
 impl PinManager {  
-    pub fn new() -> Self { 
-        let mut handlers: Vec<Box<dyn Handler>> = Vec::with_capacity(40);
-
-        for _i in 0..40 {
-            handlers.push(Box::new(UnInitializedHandler {}));
-        }
-
+    pub fn new() -> Self {
         PinManager {
             pi: wiringpi::setup(),
-            handlers: handlers,
-            runners: Vec::new()
+            handlers: HashMap::new(),
         }
     }
 
-    pub async fn start(&self) {
-        loop {
-            for runner in &self.runners {
-                runner.get_ref().poll();
-            }
-        }
-    }
-
-    pub fn create_handler(&mut self, pin: usize, pin_type: PinType) {
-        let handler: Box<dyn Handler>;
+    pub fn create_handler(&mut self, pin: u16, pin_type: PinType) {
+        let mut handler: Box<dyn Handler>;
         match pin_type {
             PinType::Pwm => {
-                if pin == HARDWARE_PWM_PIN { handler = Box::new(SoftPwmHandler::new(pin)) }
-                else { handler = Box::new(SoftPwmHandler::new(pin)) }
+                if pin == HARDWARE_PWM_PIN { handler = Box::new(PwmHandler::new(pin, &self.pi)) }
+                else { handler = Box::new(SoftPwmHandler::new(pin, &self.pi)) }
             }
-            PinType::Switch => { handler = Box::new(SwitchHandler::new(pin)) }
+            PinType::Switch => { handler = Box::new(SwitchHandler::new(pin, &self.pi)) }
         }
 
-        self.runners.push(handler.start());
-        self.handlers[pin] = handler;
+        handler.start();
+        self.handlers.insert(pin, handler);
     }
 
-    pub fn set_handler_value(&mut self, pin: usize, value: f32) {
-        self.handlers[pin].set_value(value);
+    pub fn set_handler_value(&mut self, pin: u16, value: f32) {
+        if self.handlers.contains_key(&pin) {
+            let handler = self.handlers.get_mut(&pin).unwrap();
+            handler.set_value(value);            
+        } else {
+            println!("Pin {} not initialized", pin);
+        }
     }
 }
