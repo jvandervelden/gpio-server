@@ -1,8 +1,8 @@
 mod zmq_transport;
 
-use zmq_transport::ZmqTransport;
+pub use zmq_transport::ZmqTransport;
 
-pub async fn init() {
+pub fn init() -> ZmqTransport {
     let zmq = ZmqTransport {};
-    zmq.start().await;
+    return zmq;
 }

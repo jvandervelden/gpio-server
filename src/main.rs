@@ -1,26 +1,16 @@
 mod transport;
 mod pin_manager;
+mod message_processor;
 
-use std::{
-    time,
-    thread
-};
+use async_std::{main,test};
+use pin_manager::{PinManager,PinType};
+use message_processor::MessageProcessor;
 
-use pin_manager::PinType;
-use pin_manager::PinManager;
+#[async_std::main]
+async fn main() {
+    let transport = transport::init();
+    let pin_manager = PinManager::new();
+    let message_processor = MessageProcessor::new(pin_manager, transport);
 
-fn main_loop() {
-    let interval = time::Duration::from_millis(1000);
-    let mut pin_manager = PinManager::new();
-
-    pin_manager.create_handler(0, PinType::Pwm);
-    pin_manager.set_handler_value(0, 0.5);
-
-    loop {
-    }
-}
-
-fn main() {
-    transport::init();
-    main_loop();
+    message_processor.start().await;
 }

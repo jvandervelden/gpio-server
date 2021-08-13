@@ -48,7 +48,7 @@ impl PinManager {
     pub fn set_handler_value(&mut self, pin: u16, value: f32) {
         if self.handlers.contains_key(&pin) {
             let handler = self.handlers.get_mut(&pin).unwrap();
-            handler.set_value(value);            
+            handler.set_value(value);
         } else {
             println!("Pin {} not initialized", pin);
         }

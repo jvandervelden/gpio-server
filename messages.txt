@@ -1,0 +1,77 @@
+== Messages between node and daemon: ==
+
+== Message Ids ==
+
+00: Config message
+
+    00: Quit
+    01: All 0
+    02: Create GPIO
+
+        xxx: WiringPi Pin
+
+            xx: Pin type
+
+    03: Delete GPIO
+
+        xxx WiringPi Pin
+
+    04: Delete All GPIO
+
+01: GPIO message
+
+    00: Set value
+
+        xxx:yyy.yyy WiringPi Pin:Value
+
+02: Query message
+
+    00: Get GPIO
+
+        xx: WiringPi Pin
+
+            Return value:
+
+                {
+                    "wiringPiPin": {wiringPiPin},
+                    "type": {pinType},
+                    "value": {currentValue}
+                }
+
+    01: Get All GPIO
+
+        Return value:
+
+        [{
+            "wiringPiPin": {wiringPiPin},
+            "type": {pinType},
+            "value": {currentValue}
+        }, {
+            ... for each configured pin ...
+        }]
+
+    02: Get Daemon Status
+
+        Return value:
+
+        {
+            "runningGpioCount": {numberOfConfiguredGpios}
+        }
+
+== Pin Types: ==
+
+01: PWM Output
+02: Hight/Low Switch
+
+== Return Json: ==
+
+{
+    "status": "{statusCode}",
+    "message": "{errorMessageIfAny}",
+    "value": {valueSpecifiedInMessage}
+}
+
+== Return Statuses ==
+
+OK: Done without errors.
+ERROR: Error occured, see message value in return json.
