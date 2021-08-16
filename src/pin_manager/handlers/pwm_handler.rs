@@ -29,6 +29,10 @@ impl PwmHandler {
 }
 
 impl Handler for PwmHandler {
+    fn get_pin(&self) -> u16 { self.pin }
+    fn get_value(&self) -> f32 { self.value }
+    fn get_type(&self) -> &str { "pwm" }
+
     fn set_value(&mut self, value: f32) {
         self.value = value;
         self.w_pin.write((self.value * 1024.0) as u16);

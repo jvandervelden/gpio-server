@@ -7,6 +7,9 @@ pub use soft_pwm_handler::SoftPwmHandler;
 pub use pwm_handler::PwmHandler;
 
 pub trait Handler {
+    fn get_pin(&self) -> u16;
+    fn get_value(&self) -> f32;
+    fn get_type(&self) -> &str;
     fn set_value(&mut self, value: f32);
     fn start(&mut self);
     fn stop(&mut self);
