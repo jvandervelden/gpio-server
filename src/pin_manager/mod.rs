@@ -10,12 +10,14 @@ pub use handlers::Handler;
 use handlers::PwmHandler;
 use handlers::SoftPwmHandler;
 use handlers::SwitchHandler;
+use handlers::ButtonHandler;
 
 use super::message_processor::QueryResult;
 
 const HARDWARE_PWM_PIN: u16 = 18;
 
 pub enum PinType {
+    Button,
     Switch,
     Pwm,
 }
@@ -33,11 +35,14 @@ impl PinManager {
         }
     }
 
-    pub fn assign_handler(&mut self, pin: u16, pin_type: PinType) {
+    pub fn assign_handler(&mut self, pin: u16, pin_type: PinType, options: &HashMap<String, String>) {
         self.unassign_handler(pin);
 
         let mut handler: Box<dyn Handler>;
         match pin_type {
+            PinType::Button => {
+                handler = Box::new(ButtonHandler::new(pin, &self.pi, options))
+            }
             PinType::Pwm => {
                 if pin == HARDWARE_PWM_PIN { handler = Box::new(PwmHandler::new(pin, &self.pi)) }
                 else { handler = Box::new(SoftPwmHandler::new(pin, &self.pi)) }

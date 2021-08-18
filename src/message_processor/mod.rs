@@ -2,6 +2,7 @@ mod message;
 
 pub use message::{Message, MessageResult, QueryResult, StatusResult};
 use std::result::Result;
+use std::collections::HashMap;
 
 use super::{
     pin_manager::{PinManager, PinType},
@@ -28,12 +29,19 @@ impl MessageProcessor {
 
         let pin = message.pin.unwrap();
         let pin_type: PinType = match message.pin_type.as_ref().unwrap().as_str() {
+            "button" => PinType::Button,
             "switch" => PinType::Switch,
             "pwm" => PinType::Pwm,
             _ => return Err(String::from("Unknown pinType")),
         };
+        let mut options: HashMap<String, String> = HashMap::new();
+        if message.options.is_some() {
+            for option in message.options.as_ref().unwrap() {
+                options.insert(String::from(option.0), option.1.to_string());
+            }
+        }
 
-        self.pin_manager.assign_handler(pin, pin_type);
+        self.pin_manager.assign_handler(pin, pin_type, &options);
 
         if message.value.is_some() {
             let res = self.pin_manager.set_handler_value(pin, message.value.unwrap());

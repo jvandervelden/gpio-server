@@ -1,10 +1,12 @@
 mod pwm_handler;
 mod soft_pwm_handler;
 mod switch_handler;
+mod button_handler;
 
 pub use switch_handler::SwitchHandler;
 pub use soft_pwm_handler::SoftPwmHandler;
 pub use pwm_handler::PwmHandler;
+pub use button_handler::ButtonHandler;
 
 pub trait Handler {
     fn get_pin(&self) -> u16;

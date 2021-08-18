@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
+use serde_json::{Value};
 use std::fmt::Debug;
+use std::collections::HashMap;
 
 #[derive(Deserialize, Debug)]
 pub struct Message {
@@ -9,6 +11,7 @@ pub struct Message {
     #[serde(rename = "pinType")]
     pub pin_type: Option<String>,
     pub value: Option<f32>,
+    pub options: Option<HashMap<String, Value>>,
 }
 
 #[derive(Serialize, Debug)]
